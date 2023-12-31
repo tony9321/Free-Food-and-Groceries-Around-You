@@ -1,0 +1,54 @@
+.App {
+  text-align: center;
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+.App-header {
+  background-color: #282c34 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start; /* Adjust the justify-content property, attempt to solve the far left being trauncated*/
+  font-size: calc(1vw + 1vh + 1vmin);
+  color: rgb(133, 66, 66);
+
+  /* Added */
+  overflow-x: auto;  /*Enable horizontal scrolling if necessary */
+  padding: 0 20px; /* Add padding to the left and right */
+  word-break: break-word; /* Allow content to wrap onto multiple lines */
+}
+
+.json-container {
+  background-color: #0f0425; /* Replace with your desired background color */
+}
+
+@media (max-width: 768px) {
+  .App-header {
+    flex-wrap: wrap;
+    justify-content: center;
+    text-align: center;
+  }
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
