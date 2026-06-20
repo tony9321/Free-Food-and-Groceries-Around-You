@@ -1,0 +1,67 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cde.example/schemas/pool-index-entry.v0.1.schema.json",
+  "title": "Pool index entry v0.1",
+  "description": "L3 index row — metadata-only teaser for geo subscribe and dedup (plan §7, D16/D21).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "record_id",
+    "geo_cell_6",
+    "dedup_key",
+    "published_at",
+    "visibility"
+  ],
+  "properties": {
+    "record_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Foreign key to edge-case record."
+    },
+    "geo_cell_6": {
+      "type": "string",
+      "description": "~1 km geohash cell (precision 6) from GPS at trigger."
+    },
+    "dedup_key": {
+      "type": "string",
+      "description": "Hash of trigger_name + taxonomy + floor(trigger_time_ns / 1e9) + geo_cell_6."
+    },
+    "published_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC when row entered the pool index."
+    },
+    "visibility": {
+      "type": "string",
+      "enum": ["silo", "exchange", "revoked"],
+      "description": "Tenant visibility tier (D23 governance)."
+    },
+    "title": {
+      "type": "string",
+      "description": "Teaser: scenario.summary one-liner."
+    },
+    "priority": {
+      "type": "string",
+      "enum": ["P0", "P1", "P2", "P3"],
+      "description": "Teaser: ranking.priority tier."
+    },
+    "taxonomy": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Teaser: scenario.taxonomy controlled vocab tags."
+    },
+    "trigger_name": {
+      "type": "string",
+      "description": "Teaser: trigger.name for advisory list."
+    },
+    "severity": {
+      "type": "string",
+      "enum": ["info", "low", "medium", "high", "critical"],
+      "description": "Teaser: scenario.severity."
+    },
+    "preview_url": {
+      "type": "string",
+      "description": "Signed URL or path to MP4 preview (D9)."
+    }
+  }
+}

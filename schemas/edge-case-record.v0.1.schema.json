@@ -1,0 +1,302 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cde.example/schemas/edge-case-record.v0.1.schema.json",
+  "title": "Edge-case record v0.1",
+  "description": "Atomic detection + enrichment unit produced by L2 (plan §7.2).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "record_id",
+    "created_at",
+    "source",
+    "trigger",
+    "window",
+    "scenario",
+    "signals",
+    "enrichment",
+    "ranking"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "record_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Stable primary key (UUID v4)."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "Record creation time (ISO 8601 UTC)."
+    },
+    "source": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["bag_uri", "bag_fingerprint"],
+      "properties": {
+        "bag_uri": {
+          "type": "string",
+          "description": "Local path, s3://, or content-addressed hash URI."
+        },
+        "bag_fingerprint": {
+          "type": "string",
+          "description": "SHA256 of first 1 MB + size (fast) or full hash."
+        },
+        "fleet_id": {
+          "type": "string",
+          "description": "Customer / founder fleet slug."
+        },
+        "vehicle_id": {
+          "type": "string",
+          "description": "Anonymized vehicle ID."
+        },
+        "run_id": {
+          "type": "string",
+          "description": "Drive session ID."
+        },
+        "odds": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "ODD tags: urban, highway, rain, etc."
+        },
+        "recorder": {
+          "type": "string",
+          "description": "e.g. ros2, arvos, comma."
+        }
+      }
+    },
+    "trigger": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "name",
+        "confidence",
+        "trigger_time_ns",
+        "detector_version"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["heuristic", "vision", "vlm", "manual", "composite"]
+        },
+        "name": {
+          "type": "string",
+          "description": "e.g. hard_brake, high_jerk, construction_zone."
+        },
+        "confidence": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "trigger_time_ns": {
+          "type": "integer",
+          "description": "Log-time of trigger event (nanoseconds)."
+        },
+        "detector_version": {
+          "type": "string",
+          "description": "e.g. heuristics/0.1.0."
+        }
+      }
+    },
+    "window": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["start_time_ns", "end_time_ns", "topics"],
+      "properties": {
+        "start_time_ns": {
+          "type": "integer",
+          "description": "Clip start (default: trigger − 5 s)."
+        },
+        "end_time_ns": {
+          "type": "integer",
+          "description": "Clip end (default: trigger + 2 s)."
+        },
+        "topics": {
+          "type": "array",
+          "items": { "type": "string" },
+          "minItems": 1,
+          "description": "MCAP channels included in clip."
+        },
+        "frame_anchor": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["topic", "frame_index"],
+          "properties": {
+            "topic": { "type": "string" },
+            "frame_index": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "scenario": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "description": "One-line human description."
+        },
+        "taxonomy": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Controlled vocab: pedestrian_near_miss, debris, cut_in, etc."
+        },
+        "severity": {
+          "type": "string",
+          "enum": ["info", "low", "medium", "high", "critical"]
+        },
+        "weather": {
+          "type": "string",
+          "description": "From tags or VLM."
+        },
+        "road_type": {
+          "type": "string",
+          "description": "urban, highway, parking_lot, etc."
+        }
+      }
+    },
+    "signals": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Snapshot at trigger — not full time series.",
+      "properties": {
+        "longitudinal_accel_mps2": {
+          "type": "number",
+          "description": "IMU/CAN-derived."
+        },
+        "lateral_accel_mps2": { "type": "number" },
+        "speed_mps": {
+          "type": "number",
+          "description": "GPS/OBD/CAN."
+        },
+        "steering_angle_deg": { "type": "number" },
+        "jerk_mps3": {
+          "type": "number",
+          "description": "Derived from longitudinal accel."
+        },
+        "gps": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "lat": { "type": "number" },
+            "lon": { "type": "number" },
+            "accuracy_m": { "type": "number", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "enrichment": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "heuristic_tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "detections_2d": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["frame_index", "label", "score", "bbox_xyxy"],
+            "properties": {
+              "frame_index": { "type": "integer", "minimum": 0 },
+              "label": { "type": "string" },
+              "score": { "type": "number", "minimum": 0, "maximum": 1 },
+              "bbox_xyxy": {
+                "type": "array",
+                "items": { "type": "number" },
+                "minItems": 4,
+                "maxItems": 4
+              }
+            }
+          }
+        },
+        "masks_2d": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "description": "SAM2 refs or RLE paths."
+          }
+        },
+        "vlm": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "model": { "type": "string" },
+            "scene_tags": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "rationale": { "type": "string" },
+            "confidence": { "type": "number", "minimum": 0, "maximum": 1 }
+          }
+        },
+        "embedding_ref": {
+          "type": "string",
+          "description": "URI to vector (not inline by default)."
+        }
+      }
+    },
+    "ranking": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "score": {
+          "type": "number",
+          "description": "Composite rank within run."
+        },
+        "priority": {
+          "type": "string",
+          "enum": ["P0", "P1", "P2", "P3"]
+        },
+        "dedup_key": {
+          "type": "string",
+          "description": "Hash of trigger type + taxonomy + ~1 s time bucket + geo cell."
+        },
+        "is_duplicate_of": {
+          "type": "string",
+          "format": "uuid",
+          "description": "Prior record_id if this row is a local duplicate."
+        }
+      }
+    },
+    "attachments": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "clip_uri": {
+          "type": "string",
+          "description": "Sidecar MCAP (local or object store)."
+        },
+        "clip_fingerprint": {
+          "type": "string",
+          "description": "Content hash of clip."
+        },
+        "preview_uri": {
+          "type": "string",
+          "description": "MP4 for pool UI video preview."
+        },
+        "thumbnail_uri": {
+          "type": "string",
+          "description": "Single-frame JPG preview."
+        }
+      }
+    },
+    "supersedes": {
+      "type": "string",
+      "format": "uuid",
+      "description": "Prior record_id if corrected."
+    },
+    "license_tag": {
+      "type": "string",
+      "description": "e.g. commercial_demo_ok, internal_only."
+    }
+  }
+}

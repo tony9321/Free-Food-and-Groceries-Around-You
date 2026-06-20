@@ -1,0 +1,147 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://cde.example/schemas/regression-test-card.v0.1.schema.json",
+  "title": "Regression test card v0.1",
+  "description": "CI-facing eval artifact derived from one or more edge-case records (plan §7.3).",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "card_id",
+    "title",
+    "record_refs",
+    "eval_spec",
+    "acceptance",
+    "status",
+    "created_at"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "0.1"
+    },
+    "card_id": {
+      "type": "string",
+      "format": "uuid",
+      "description": "CI artifact ID."
+    },
+    "title": {
+      "type": "string",
+      "description": "e.g. Hard brake — pedestrian near crosswalk."
+    },
+    "record_refs": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "format": "uuid"
+      },
+      "minItems": 1,
+      "description": "One or more record_id anchors for traceability."
+    },
+    "eval_spec": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "description": "Eval harness type, e.g. replay_window."
+        },
+        "window_ref": {
+          "type": "string",
+          "description": "Reference to primary record window, e.g. primary_record.window."
+        },
+        "required_topics": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "inject_at_time_ns": {
+          "oneOf": [
+            { "type": "integer" },
+            { "type": "string" }
+          ],
+          "description": "Trigger injection time or symbolic ref to trigger_time_ns."
+        },
+        "tags": {
+          "type": "array",
+          "items": { "type": "string" }
+        }
+      }
+    },
+    "acceptance": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["metrics"],
+      "properties": {
+        "metrics": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["name", "op", "value"],
+            "properties": {
+              "name": { "type": "string" },
+              "op": {
+                "type": "string",
+                "enum": ["==", "!=", "<", "<=", ">", ">="]
+              },
+              "value": {
+                "oneOf": [
+                  { "type": "number" },
+                  { "type": "boolean" },
+                  { "type": "string" }
+                ]
+              }
+            }
+          }
+        },
+        "human_review_required": {
+          "type": "boolean",
+          "default": false
+        }
+      }
+    },
+    "stack_context": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Perception/planning version pins.",
+      "properties": {
+        "perception_version": { "type": "string" },
+        "planning_version": { "type": "string" },
+        "map_version": { "type": "string" },
+        "vehicle_platform": { "type": "string" }
+      }
+    },
+    "exports": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "OpenSCENARIO, pytest marker, GitHub Actions snippet.",
+      "properties": {
+        "openscenario_ref": {
+          "type": "string",
+          "description": "URI or path to OpenSCENARIO export."
+        },
+        "pytest_marker": {
+          "type": "string",
+          "description": "pytest marker string for CI selection."
+        },
+        "github_actions_snippet": {
+          "type": "string",
+          "description": "Inline or path reference to GHA workflow fragment."
+        },
+        "clip_uri": { "type": "string" },
+        "preview_uri": { "type": "string" },
+        "clip_fingerprint": { "type": "string" }
+      }
+    },
+    "status": {
+      "type": "string",
+      "enum": ["draft", "approved", "regression", "flaky", "retired"]
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO 8601 UTC."
+    }
+  }
+}

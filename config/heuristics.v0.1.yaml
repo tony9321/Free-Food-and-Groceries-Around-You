@@ -1,0 +1,43 @@
+# Heuristic triggers v0.1 — plan §9.2 (D6 locked)
+# Consumed by L2 detect path; video_gate ensures enrichment has camera frames.
+
+version: "0.1.0"
+
+video_gate: true
+
+hysteresis:
+  consecutive_samples: 3  # samples above threshold before trigger fires
+  cooldown_s: 2           # per trigger type per run
+
+triggers:
+  hard_brake:
+    signal: longitudinal_accel_mps2
+    op: "<="
+    threshold_mps2: -3.5
+    min_duration_ms: 200
+
+  harsh_corner:
+    signal: lateral_accel_mps2
+    op: ">="
+    threshold_mps2: 2.5
+
+  high_jerk:
+    signal: jerk_mps3
+    op: ">="
+    threshold_mps3: 5.0
+
+  speed_anomaly:
+    signal: gps_speed_delta_pct
+    op: ">"
+    threshold_pct: 15.0
+    min_duration_s: 1.0
+
+  topic_gap:
+    signal: camera_inter_message_gap
+    op: ">"
+    multiplier_of_median: 3.0
+    topic: "/camera/front/compressed"
+
+window_defaults:
+  pre_trigger_s: 5
+  post_trigger_s: 2

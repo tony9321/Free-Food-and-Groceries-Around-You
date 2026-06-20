@@ -1,0 +1,46 @@
+---
+description: Multi-agent workflow for non-trivial CDE code changes — investigate, plan, test, verify, report
+alwaysApply: true
+---
+
+# Autonomous Multi-Agent Development
+
+For any **non-trivial** code change, use the multi-agent development workflow.
+
+## Non-trivial means
+
+- Changes touching production code
+- Changes affecting APIs, data models, infra, tests, or build config
+- Bug fixes where regression risk exists
+- Feature work beyond a one-line/local edit
+
+## Always prefer
+
+1. **Investigate** before coding — read relevant code, specs, and prior context
+2. **Plan** before editing — outline approach and touch points
+3. **Test-driven or test-backed** development — add or extend tests for changed behavior
+4. **Separate verification** after implementation — run checks independently of authoring
+5. **Regression review** before final response — scan for unintended side effects
+
+## Autonomy
+
+Do not ask the user for guidance unless blocked by:
+
+- Missing credentials or private data
+- Paid external services
+- Destructive or irreversible actions
+- Ambiguous product decisions with high downstream cost
+
+## Completion report
+
+After finishing, report:
+
+- **What changed** — summary of behavior and intent
+- **Tests/checks run** — commands and outcomes
+- **Risks remaining** — known gaps or follow-ups
+- **Files changed** — list of touched paths
+- **Next step** — recommended follow-on action
+
+## CDE authority
+
+On conflicts, **`plan.md` §16** is implementation authority. **Gate 0 = E2 scope only:** L1 ingest + clip on `car_l1_spike.mcap`; no heuristics, records, pool, or cloud until Gate 1+.
